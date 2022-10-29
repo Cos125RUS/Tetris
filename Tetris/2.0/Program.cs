@@ -105,14 +105,6 @@ int[,] Choice(int n)
                      {1,1},
                      {1,0}};
 
-    int[,] shape6 = {{0,1},
-                     {0,1},
-                     {1,1}};
-                     
-    int[,] shape7 = {{1,0},
-                     {1,1},
-                     {0,1}};
-
     switch (n)
     {
         case 1:
@@ -127,14 +119,8 @@ int[,] Choice(int n)
         case 4:
             return shape4;
 
-        case 5:
-            return shape5;
-            
-        case 6:
-            return shape6;
-
         default:
-            return shape7;
+            return shape5;
     }
 }
 
@@ -142,7 +128,7 @@ int[,] Choice(int n)
 // Создание следующей фигуры
 (int[,], int, int) NewFigure()
 {
-    int[,] shape = Choice(Random.Shared.Next(1, 8));
+    int[,] shape = Choice(Random.Shared.Next(1, 6));
     int n = shape.GetLength(0);
     int m = shape.GetLength(1);
 
