@@ -44,13 +44,11 @@ void PrintNextFigure(int[,] nextMapping, int nextRow, int nextColumn, int vertic
     Console.Write("Next Figure:");
 
     for (int i = 0; i < nextRow; i++)
-    {
         for (int j = 0; j < nextColumn; j++)
         {
             Console.SetCursorPosition(28 + vertical + i, 4 + j);
             if (nextMapping[i, j] == 1) Console.Write(Convert.ToChar(4));
         }
-    }
 }
 
 

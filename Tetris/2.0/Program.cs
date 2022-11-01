@@ -20,11 +20,11 @@
 
 
 // Отрисовка поля
-void PrintField(int[,] field, int vertical, int horizontal, int[] lineCounter)
+void PrintField(int[,] field, int vertical, int horizontal)
 {
     Console.Clear();
 
-    for (int i = 1; i < vertical - 6; i++)
+    for (int i = 2; i < vertical - 6; i++)
     {
         for (int j = 9; j < horizontal - 9; j++)
         {
@@ -32,10 +32,30 @@ void PrintField(int[,] field, int vertical, int horizontal, int[] lineCounter)
             if (field[i, j] == 1)
                 Console.Write('*');
         }
-        Console.SetCursorPosition(7, i);
-        Console.Write(lineCounter[i]);
         Console.WriteLine();
     }
+}
+
+
+// Вывод информации
+void PrintInformation(int vertical, int points, int level, int [,] next, int row, int column)
+{
+    Console.SetCursorPosition(7, vertical - 14);
+    Console.Write("Points");
+    Console.SetCursorPosition(7, vertical - 12);
+    Console.Write(points);
+    Console.SetCursorPosition(7, vertical - 20);
+    Console.Write("Level " + level);
+
+    Console.SetCursorPosition(7, 6);
+    Console.Write("Next Figure:");
+
+    for (int i = 0; i < row; i++)
+        for (int j = 0; j < column; j++)
+        {
+            Console.SetCursorPosition(7 + j, 9 + i);
+            if (next[i, j] == 1) Console.Write('*');
+        }
 }
 
 
@@ -167,6 +187,19 @@ int[,] Choice(int n)
     int column = shape.GetLength(1);
 
     return (shape, row, column);
+}
+
+
+// Копирование фигуры
+(int[,], int, int) Copying(int[,] shape, int n, int m)
+{
+    int[,] f = new int[n, m];
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            f[i, j] = shape[i, j];
+
+    return (f, n, m);
 }
 
 
@@ -303,6 +336,41 @@ void Reduction(int line, int[,] field, int[] lineCounter, int horizontal)
 }
 
 
+// Уровни
+(int, int) LevelsUp(int points)
+{
+    int level = 1;
+    int time = 500;
+
+    if (points >= 2000 && points < 5000)
+    {
+        level = 2;
+        time = 450;
+    }
+    if (points >= 5000 && points < 8000)
+    {
+        level = 3;
+        time = 400;
+    }
+    if (points >= 8000 && points < 12000)
+    {
+        level = 4;
+        time = 300;
+    }
+    if (points >= 12000 && points < 20000)
+    {
+        level = 5;
+        time = 200;
+    }
+    if (points >= 20000)
+    {
+        level = 6;
+        time = 100;
+    }
+    return (level, time);
+}
+
+
 // Параметры поля
 const int vertical = 42;
 const int horizontal = 60;
@@ -314,6 +382,7 @@ int[] lineCounter = new int[horizontal - 24];   // Ширина поля -(по�
 
 // Первая запись фигур
 (int[,] mapping, int row, int column) = NewFigure();
+(int [,] nextMapping, int nextRow, int nextColumn) = NewFigure();
 
 // Начальные параметры
 Console.CursorVisible = false;
@@ -333,7 +402,8 @@ new Thread(() =>
 
         if (!gameOver)
         {
-            PrintField(field, vertical, horizontal, lineCounter);
+            PrintField(field, vertical, horizontal);
+            PrintInformation(vertical, points, level, nextMapping, nextRow, nextColumn);
             Figure(x, y, mapping, row, column);
             Thread.Sleep(time);
 
@@ -345,7 +415,7 @@ new Thread(() =>
                 (mapping, row, column) = NewFigure();
                 y = 0;
                 x = horizontal / 2 - 3;
-                time = 500;
+                (level, time) = LevelsUp(points);
             }
         }
         else
@@ -411,6 +481,6 @@ while (true)
             time = 99999999;
             Pause(vertical, horizontal);
         }
-        else time = 500;
+        else (level, time) = LevelsUp(points);
     }
 }
