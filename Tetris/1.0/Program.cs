@@ -108,7 +108,7 @@ int[,] Choice(int n)
     int[,] shape6 = {{0,1},
                      {0,1},
                      {1,1}};
-                     
+
     int[,] shape7 = {{1,0},
                      {1,1},
                      {0,1}};
@@ -129,7 +129,7 @@ int[,] Choice(int n)
 
         case 5:
             return shape5;
-            
+
         case 6:
             return shape6;
 
@@ -216,6 +216,8 @@ void Reduction(int line, int[,] field, int[] lineCounter, int vertical)
 
     for (int i = 1; i < vertical - 1; i++)
         field[i, 1] = 0;
+
+    lineCounter[1] = 0; // ?
 }
 
 
@@ -296,7 +298,7 @@ bool RequestRestart(int[,] field, int horizontal, int vertical)
 
 
 // Рестарт
-(int[,], int[], int, int, bool) Restart(int[,] field, int horizontal, int vertical, 
+(int[,], int[], int, int, bool) Restart(int[,] field, int horizontal, int vertical,
                                         int[] lineCounter, int points, int time, bool gameOver)
 {
     field = CreateField(horizontal, vertical);

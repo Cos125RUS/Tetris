@@ -37,6 +37,54 @@ void PrintField(int[,] field, int vertical, int horizontal)
 }
 
 
+// Сообщение о паузе
+void Pause(int vertical, int horizontal)
+{
+    Console.SetCursorPosition(20 + horizontal / 2 - 5, 9);
+    for (int i = 0; i < 11; i++)
+        Console.Write(' ');
+
+    Console.SetCursorPosition(20 + horizontal / 2 - 5, 10);
+    for (int i = 0; i < 11; i++)
+        Console.Write('+');
+
+    Console.SetCursorPosition(20 + horizontal / 2 - 5, 11);
+    Console.WriteLine("+  PAUSE  +");
+
+    Console.SetCursorPosition(20 + horizontal / 2 - 5, 12);
+    for (int i = 0; i < 11; i++)
+        Console.Write('+');
+
+    Console.SetCursorPosition(20 + horizontal / 2 - 5, 13);
+    for (int i = 0; i < 11; i++)
+        Console.Write(' ');
+}
+
+
+// Сообщение о проигрыше
+void Looser(int vertical, int horizontal)
+{
+    Console.SetCursorPosition(20 + horizontal / 2 - 7, 9);
+    for (int i = 0; i < 15; i++)
+        Console.Write(' ');
+
+    Console.SetCursorPosition(20 + horizontal / 2 - 7, 10);
+    for (int i = 0; i < 15; i++)
+        Console.Write('+');
+
+    Console.SetCursorPosition(20 + horizontal / 2 - 7, 11);
+    Console.WriteLine("+  GAME OVER  +");
+
+    Console.SetCursorPosition(20 + horizontal / 2 - 7, 12);
+    for (int i = 0; i < 15; i++)
+        Console.Write('+');
+
+    Console.SetCursorPosition(20 + horizontal / 2 - 7, 13);
+    for (int i = 0; i < 15; i++)
+        Console.Write(' ');
+}
+
+
 // Выбор фигуры
 int[,] Choice(int n)
 {
@@ -137,12 +185,6 @@ void Figure(int x, int y, int[,] mapping, int row, int column)
 {
     int[,] revers = new int[m / 3 * 2, n / 2 * 3];
 
-    // for (int k = 0; k < n / 2; k++)
-    //     for (int l = 0; l < m / 3; l++)
-    //         for (int i = k * 2; i < k * 2 + 2; i++)
-    //             for (int j = l * 3; j < l * 3 + 3; j++)
-    //                 revers[l * 2 + i, n / 2 * 3 - 3 * (1 + k) - j] = arr[i, j];
-
     int k = n / 2;
     int l = m / 3;
     int[,] start = new int[k, l];
@@ -166,15 +208,45 @@ void Figure(int x, int y, int[,] mapping, int row, int column)
 }
 
 
+// Проверка на слепливание фигур
+bool SideTest(int x, int y, int direction, int orientation, int[,] field, int[,] mapping, int row, int column)
+{
+    for (int i = 0; i < row; i++)
+        for (int j = 0; j < column; j++)
+            if (mapping[i, j] == 1 && field[y + i + orientation * 2, j + x + direction * 3] == 1) return true;
+
+    return false;
+}
+
+
+// Смещение фигуры при вращении
+(int, int) TwistTest(int x, int y, int[,] field, int[,] mapping, int row, int column)
+{
+    int direction = 0;
+    int orientation = 0;
+
+    for (int i = 0; i < row; i++)
+        for (int j = 0; j < column; j++)
+            if (mapping[i, j] == 1 && field[i + y, j + x] == 1)
+            {
+                if (field[i + y, x - 1] == 1) direction = 1;
+                if (field[i + y, x + column + 1] == 1) direction = -1;
+                if (field[y + row + 1, j + x] == 1) orientation = -1;
+            }
+
+    return (3 * direction, 2 * orientation);
+}
+
+
 // Проверка падения фигуры
-// bool gameOver = false;
+bool gameOver = false;
 bool Drop(int x, int y, int[,] field, int[,] mapping, int row, int column)
 {
     for (int i = 0; i < row; i += 2)
         for (int j = 0; j < column; j += 3)
             if (mapping[i, j] == 1 && field[i + y, j + x] == 1)
             {
-                // if (y - column < 1) gameOver = true; // Проверка проигрыша
+                if (y < 4) gameOver = true; // Проверка проигрыша
                 return true;
             }
 
@@ -253,20 +325,32 @@ new Thread(() =>
     {
         while (time > 500) { }
 
-        PrintField(field, vertical, horizontal);
-        Figure(x, y, mapping, row, column);
-        Thread.Sleep(time);
-
-        y += 2;
-
-        if (Drop(x, y, field, mapping, row, column))
-        // if (y + row > vertical - 8)
+        if (!gameOver)
         {
-            points += ChangeField(x, y, lineCounter, field, mapping, row, column, horizontal, vertical);
-            (mapping, row, column) = NewFigure();
-            y = 0;
-            x = horizontal / 2 - 3;
-            time = 500;
+            PrintField(field, vertical, horizontal);
+            Figure(x, y, mapping, row, column);
+            Thread.Sleep(time);
+
+            y += 2;
+
+            if (Drop(x, y, field, mapping, row, column))
+            {
+                points += ChangeField(x, y, lineCounter, field, mapping, row, column, horizontal, vertical);
+                (mapping, row, column) = NewFigure();
+                y = 0;
+                x = horizontal / 2 - 3;
+                time = 500;
+            }
+        }
+        else
+        {
+            time = 99999999;
+            Looser(vertical, horizontal);
+            break;
+            // if (RequestRestart(field, horizontal, vertical))
+            //     (field, lineCounter, points, time, gameOver) =
+            //     Restart(field, horizontal, vertical, lineCounter, points, time, gameOver);
+            // else break;
         }
     }
 }).Start();
@@ -279,14 +363,14 @@ while (true)
 
     if (key == ConsoleKey.LeftArrow)
     {
-        if (x > 12)
+        if (!SideTest(x, y, -1, 0, field, mapping, row, column))
             x -= 3;
         Figure(x, y, mapping, row, column);
     }
 
     if (key == ConsoleKey.RightArrow)
     {
-        if (x < horizontal - 12 - column)
+        if (!SideTest(x, y, 1, 0, field, mapping, row, column))
             x += 3;
         Figure(x, y, mapping, row, column);
     }
@@ -294,6 +378,14 @@ while (true)
     if (key == ConsoleKey.Spacebar)
     {
         (mapping, row, column) = Twist(mapping, row, column);
+        // while (x + column > horizontal - 12) x -= 3;
+        // while (x < 12) x += 3;
+        while (SideTest(x, y, 0, 0, field, mapping, row, column))
+        {
+            (int direction, int orientation) = TwistTest(x, y, field, mapping, row, column);
+            x += direction;
+            y += orientation;
+        }
         Figure(x, y, mapping, row, column);
     }
 
@@ -308,8 +400,7 @@ while (true)
         if (time <= 500)
         {
             time = 99999999;
-            // Console.SetCursorPosition(horizontal / 4, vertical + 2);
-            Console.WriteLine("PAUSE");
+            Pause(vertical, horizontal);
         }
         else time = 500;
     }
