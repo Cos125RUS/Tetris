@@ -20,11 +20,11 @@
 
 
 // Отрисовка поля
-void PrintField(int[,] field, int vertical, int horizontal)
+void PrintField(int[,] field, int vertical, int horizontal, int[] lineCounter)
 {
     Console.Clear();
 
-    for (int i = 0; i < vertical - 6; i++)
+    for (int i = 1; i < vertical - 6; i++)
     {
         for (int j = 9; j < horizontal - 9; j++)
         {
@@ -32,6 +32,8 @@ void PrintField(int[,] field, int vertical, int horizontal)
             if (field[i, j] == 1)
                 Console.Write('*');
         }
+        Console.SetCursorPosition(7, i);
+        Console.Write(lineCounter[i]);
         Console.WriteLine();
     }
 }
@@ -220,19 +222,20 @@ bool SideTest(int x, int y, int direction, int orientation, int[,] field, int[,]
 
 
 // Смещение фигуры при вращении
-(int, int) TwistTest(int x, int y, int[,] field, int[,] mapping, int row, int column)
+(int, int) TwistTest(int x, int y, int[,] field, int[,] mapping, int row, int column, int horizontal)
 {
     int direction = 0;
     int orientation = 0;
 
-    for (int i = 0; i < row; i++)
-        for (int j = 0; j < column; j++)
+    for (int i = 0; i < row; i += 2)
+        for (int j = 3; j < column; j += 3)
             if (mapping[i, j] == 1 && field[i + y, j + x] == 1)
-            {
-                if (field[i + y, x - 1] == 1) direction = 1;
-                if (field[i + y, x + column + 1] == 1) direction = -1;
-                if (field[y + row + 1, j + x] == 1) orientation = -1;
-            }
+                direction = -1;
+
+    for (int i = 2; i < row; i += 2)
+        for (int j = 0; j < column; j += 3)
+            if (mapping[i, j] == 1 && field[i + y, j + x] == 1)
+                orientation = -1;
 
     return (3 * direction, 2 * orientation);
 }
@@ -262,17 +265,20 @@ int ChangeField(int x, int y, int[] lineCounter, int[,] field,
     int count = 0;
 
     for (int i = 0; i < row; i++)
+    {
         for (int j = 0; j < column; j++)
             if (mapping[i, j] == 1)
             {
                 field[i + y - 2, j + x] = 1;
-                ++lineCounter[i + y];
-                if (lineCounter[i + y] == horizontal - 24)
-                {
-                    count++;
-                    Reduction(i + y - 2, field, lineCounter, horizontal);
-                }
+                ++lineCounter[i + y - 2];
             }
+
+        if (lineCounter[i + y - 2] == horizontal - 24 && i % 2 != 0)
+        {
+            count++;
+            Reduction(i + y - 2, field, lineCounter, horizontal);
+        }
+    }
 
     switch (count)
     {
@@ -327,7 +333,7 @@ new Thread(() =>
 
         if (!gameOver)
         {
-            PrintField(field, vertical, horizontal);
+            PrintField(field, vertical, horizontal, lineCounter);
             Figure(x, y, mapping, row, column);
             Thread.Sleep(time);
 
@@ -377,16 +383,19 @@ while (true)
 
     if (key == ConsoleKey.Spacebar)
     {
-        (mapping, row, column) = Twist(mapping, row, column);
-        // while (x + column > horizontal - 12) x -= 3;
-        // while (x < 12) x += 3;
-        while (SideTest(x, y, 0, 0, field, mapping, row, column))
+        if (y + row < vertical - 8)
         {
-            (int direction, int orientation) = TwistTest(x, y, field, mapping, row, column);
-            x += direction;
-            y += orientation;
+            (mapping, row, column) = Twist(mapping, row, column);
+            while (x + column > horizontal - 12) x -= 3;
+            while (x < 12) x += 3;
+            while (SideTest(x, y, 0, 0, field, mapping, row, column))
+            {
+                (int direction, int orientation) = TwistTest(x, y, field, mapping, row, column, horizontal);
+                x += direction;
+                y += orientation;
+            }
+            Figure(x, y, mapping, row, column);
         }
-        Figure(x, y, mapping, row, column);
     }
 
     if (key == ConsoleKey.DownArrow)
