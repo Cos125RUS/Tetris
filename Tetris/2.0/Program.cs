@@ -32,13 +32,12 @@ void PrintField(int[,] field, int vertical, int horizontal)
             if (field[i, j] == 1)
                 Console.Write('*');
         }
-        Console.WriteLine();
     }
 }
 
 
 // Вывод информации
-void PrintInformation(int vertical, int points, int level, int [,] next, int row, int column)
+void PrintInformation(int vertical, int points, int level, int[,] next, int row, int column)
 {
     Console.SetCursorPosition(7, vertical - 14);
     Console.Write("Points");
@@ -86,24 +85,52 @@ void Pause(int vertical, int horizontal)
 // Сообщение о проигрыше
 void Looser(int vertical, int horizontal)
 {
-    Console.SetCursorPosition(20 + horizontal / 2 - 7, 9);
     for (int i = 0; i < 15; i++)
+    {
+        Console.SetCursorPosition(20 + horizontal / 2 + i - 7, 9);
         Console.Write(' ');
-
-    Console.SetCursorPosition(20 + horizontal / 2 - 7, 10);
-    for (int i = 0; i < 15; i++)
+        Console.SetCursorPosition(20 + horizontal / 2 + i - 7, 10);
         Console.Write('+');
+        Console.SetCursorPosition(20 + horizontal / 2 + i - 7, 16);
+        Console.Write('+');
+        Console.SetCursorPosition(20 + horizontal / 2 + i - 7, 17);
+        Console.Write(' ');
+        if (i > 0 && i < 14)
+        {
+            Console.SetCursorPosition(20 + horizontal / 2 + i - 7, 12);
+            Console.Write(' ');
+            Console.SetCursorPosition(20 + horizontal / 2 + i - 7, 13);
+            Console.Write(' ');
+        }
+        if (i == 0 || i == 14)
+        {
+            Console.SetCursorPosition(20 + horizontal / 2 + i - 7, 12);
+            Console.Write('+');
+            Console.SetCursorPosition(20 + horizontal / 2 + i - 7, 13);
+            Console.Write('+');
+        }
+    }
 
     Console.SetCursorPosition(20 + horizontal / 2 - 7, 11);
     Console.WriteLine("+  GAME OVER  +");
+    Console.SetCursorPosition(20 + horizontal / 2 - 7, 14);
+    Console.Write("+  Try again? +");
+    Console.SetCursorPosition(20 + horizontal / 2 - 7, 15);
+    Console.Write("+    (y/n)    +");
+}
 
-    Console.SetCursorPosition(20 + horizontal / 2 - 7, 12);
-    for (int i = 0; i < 15; i++)
-        Console.Write('+');
 
-    Console.SetCursorPosition(20 + horizontal / 2 - 7, 13);
-    for (int i = 0; i < 15; i++)
-        Console.Write(' ');
+// Запрос рестарта
+bool RequestRestart()
+{
+    while (true)
+    {
+        var key = Console.ReadKey(true).Key;
+
+        if (key == ConsoleKey.Y) return true;
+        if (key == ConsoleKey.N) return false;
+        else return RequestRestart();
+    }
 }
 
 
@@ -371,6 +398,21 @@ void Reduction(int line, int[,] field, int[] lineCounter, int horizontal)
 }
 
 
+// Рестарт
+(int[,], int[], int, int, bool) Restart(int[,] field, int horizontal, int vertical,
+                                        int[] lineCounter, int points, int time, bool gameOver)
+{
+    field = CreateField(vertical, horizontal);
+    for (int i = 2; i < vertical - 8; i++)
+        lineCounter[i] = 0;
+    points = 0;
+    time = 500;
+    gameOver = false;
+
+    return (field, lineCounter, points, time, gameOver);
+}
+
+
 // Параметры поля
 const int vertical = 42;
 const int horizontal = 60;
@@ -382,7 +424,7 @@ int[] lineCounter = new int[horizontal - 24];   // Ширина поля -(по�
 
 // Первая запись фигур
 (int[,] mapping, int row, int column) = NewFigure();
-(int [,] nextMapping, int nextRow, int nextColumn) = NewFigure();
+(int[,] nextMapping, int nextRow, int nextColumn) = NewFigure();
 
 // Начальные параметры
 Console.CursorVisible = false;
@@ -412,21 +454,29 @@ new Thread(() =>
             if (Drop(x, y, field, mapping, row, column))
             {
                 points += ChangeField(x, y, lineCounter, field, mapping, row, column, horizontal, vertical);
-                (mapping, row, column) = NewFigure();
+                (mapping, row, column) = Copying(nextMapping, nextRow, nextColumn);
+                (nextMapping, nextRow, nextColumn) = NewFigure();
+                (level, time) = LevelsUp(points);
                 y = 0;
                 x = horizontal / 2 - 3;
-                (level, time) = LevelsUp(points);
             }
         }
         else
         {
             time = 99999999;
             Looser(vertical, horizontal);
-            break;
-            // if (RequestRestart(field, horizontal, vertical))
-            //     (field, lineCounter, points, time, gameOver) =
-            //     Restart(field, horizontal, vertical, lineCounter, points, time, gameOver);
-            // else break;
+            if (RequestRestart())
+            {
+                (field, lineCounter, points, time, gameOver) =
+                Restart(field, horizontal, vertical, lineCounter, points, time, gameOver);
+            }
+            else
+            {
+                Console.Clear();
+                Console.SetCursorPosition(20 + horizontal / 2 - 8, 9);
+                Console.WriteLine("Your points: " + points);
+                break;
+            }
         }
     }
 }).Start();
