@@ -146,11 +146,11 @@ void Looser(int vertical, int horizontal)
 // Запрос рестарта
 bool RequestRestart()
 {
-        var key = Console.ReadKey(true).Key;
+    var key = Console.ReadKey(true).Key;
 
-        if (key == ConsoleKey.Y) return true;
-        if (key == ConsoleKey.N) return false;
-        else return RequestRestart();
+    if (key == ConsoleKey.Y) return true;
+    if (key == ConsoleKey.N) return false;
+    else return RequestRestart();
 }
 
 
@@ -433,6 +433,20 @@ void Reduction(int line, int[,] field, int[] lineCounter, int horizontal)
 }
 
 
+// Сохранение
+void Save(int[,] field, int vertical, int horizontal)
+{
+    string[] saveGame = new string[vertical];
+    File.WriteAllText("save.txt", "");
+
+    for (int i = 0; i < vertical; i++)
+        for (int j = 0; j < horizontal; j++)
+            saveGame[i] += field[i, j];
+
+    File.AppendAllLines("save.txt", saveGame);
+}
+
+
 // Параметры поля
 const int vertical = 42;
 const int horizontal = 60;
@@ -614,8 +628,7 @@ while (true)
                     break;
 
                 case 2:
-                    startGame = true;
-                    (level, time) = LevelsUp(0);
+                    Save(field, vertical, horizontal);
                     break;
 
                 default:
