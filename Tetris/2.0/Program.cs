@@ -447,6 +447,29 @@ void Save(int[,] field, int vertical, int horizontal)
 }
 
 
+// Загрузка
+int[,] Load()
+{
+    string file = File.ReadAllText("save.txt");
+    int length = file.IndexOf("\n");
+    string[] lines = File.ReadAllLines("save.txt");
+    int[,] field = new int[lines.Length, length - 1];
+    int num;
+
+    for (int i = 0; i < lines.Length; i++)
+    {
+        int.TryParse(lines[i], out num);
+        for (int j = length - 2; j >= 0; j--)
+        {
+            field[i, j] = num % 10;
+            num /= 10;
+        }
+    }
+
+    return field;
+}
+
+
 // Параметры поля
 const int vertical = 42;
 const int horizontal = 60;
@@ -632,8 +655,14 @@ while (true)
                     break;
 
                 default:
+                    field = Load();
                     startGame = true;
-                    (level, time) = LevelsUp(0);
+                    (mapping, row, column) = NewFigure();
+                    (nextMapping, nextRow, nextColumn) = NewFigure();
+                    level = 1;
+                    time = 500;
+                    y = 0;
+                    x = horizontal / 2 - 3;
                     break;
             }
         }

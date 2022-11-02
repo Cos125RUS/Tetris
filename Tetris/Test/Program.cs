@@ -1,25 +1,50 @@
-﻿void Save(int[,] field, int vertical, int horizontal)
+﻿int[,] Load()
 {
-    string[] saveGame = new string[vertical];
-    File.WriteAllText("save.txt", "");
+    string text = File.ReadAllText("save.txt");
+    int pos = text.IndexOf("\n");
+    string[] lines = File.ReadAllLines("save.txt");
+    int[,] arr = new int[lines.Length, pos - 1];
+    // int a;
 
-    for (int i = 0; i < vertical; i++)
+    for (int i = 0; i < lines.Length; i++)
     {
-        for (int j = 0; j < horizontal; j++)
+        string numbers = lines[i];
+        int[] num = numbers.Select(x => x - '\n').ToArray();
+        // int.TryParse(lines[i], out a);
+        for (int j = 0; j < pos - 1; j--)
         {
-            saveGame[i] += field[i, j];
+            Console.Write(num[j]);
+            // arr[i,j] = num[j];
+            // arr[i,j] = int.Parse(numbers[j]);
+            // int.TryParse(numbers[j], out a);
+            // arr[i, j] = a % 10;
+            // a /= 10;
         }
+        System.Console.WriteLine();
     }
-    File.AppendAllLines("save.txt", saveGame);
+
+    return arr;
 }
 
 
-const int vertical = 2;
-const int horizontal = 4;
+int[,] array = Load();
 
-int[,] field = {{0,0,1,1},
-                {1,1,0,0}};
+int n = array.GetLength(0);
+int m = array.GetLength(1);
+
+System.Console.WriteLine(n);
+System.Console.WriteLine(m);
+
+for (int i = 0; i < n; i++)
+{
+    for (int j = 0; j < m; j++)
+    {
+        Console.Write(array[i, j]);
+    }
+    Console.WriteLine();
+}
 
 
 
-Save(field, vertical, horizontal);
+// string numbers = "1321656";
+//         int[] num = numbers.Select(x => x - '0').ToArray();
