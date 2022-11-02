@@ -1,4 +1,27 @@
-﻿int[,] CreateField(int vertical, int horizontal)
+﻿// Главное меню
+void Menu(int cursor)
+{
+    int a = 0;
+    if (cursor > 0) a = 2;
+
+    Console.Clear();
+
+    Console.SetCursorPosition(40, 10);
+    Console.Write("New game");
+
+    Console.SetCursorPosition(42, 12);
+    Console.Write("Save");
+
+    Console.SetCursorPosition(42, 14);
+    Console.Write("Load");
+
+    Console.SetCursorPosition(37 + a, 10 + cursor);
+    Console.Write('*');
+}
+
+
+// Создание поля
+int[,] CreateField(int vertical, int horizontal)
 {
     int[,] field = new int[vertical, horizontal];
 
@@ -417,20 +440,23 @@ void Reduction(int line, int[,] field, int[] lineCounter, int horizontal)
 const int vertical = 42;
 const int horizontal = 60;
 
+// Запуск
+Console.CursorVisible = false;
+bool startGame = false;
+int cursor = 0;
+
 // Инициализация поля
 int[,] field = CreateField(vertical, horizontal);
-int[] lineCounter = new int[horizontal - 24];   // Ширина поля -(поля) -(боковой буфер) 
-
+int[] lineCounter = new int[horizontal - 24];   // Ширина поля -(рамка) -(боковой буфер) 
 
 // Первая запись фигур
 (int[,] mapping, int row, int column) = NewFigure();
 (int[,] nextMapping, int nextRow, int nextColumn) = NewFigure();
 
 // Начальные параметры
-Console.CursorVisible = false;
 int x = horizontal / 2 - 3;
 int y = 0;
-int time = 500;
+int time = 1000;
 int points = 0;
 int level = 1;
 
@@ -440,6 +466,12 @@ new Thread(() =>
 {
     while (true)
     {
+        while (!startGame)
+        {
+            Menu(cursor);
+            Thread.Sleep(time);
+        }
+
         while (time > 500) { }
 
         if (!gameOver)
@@ -463,7 +495,7 @@ new Thread(() =>
         }
         else
         {
-            time = 99999999;
+            time = 3000;
             Looser(vertical, horizontal);
             if (RequestRestart())
             {
@@ -475,7 +507,8 @@ new Thread(() =>
                 Console.Clear();
                 Console.SetCursorPosition(20 + horizontal / 2 - 8, 9);
                 Console.WriteLine("Your points: " + points);
-                break;
+                Thread.Sleep(3000);
+                startGame = false;
             }
         }
     }
@@ -487,50 +520,102 @@ while (true)
 {
     var key = Console.ReadKey(true).Key;
 
-    if (key == ConsoleKey.LeftArrow)
+    if (startGame)
     {
-        if (!SideTest(x, y, -1, 0, field, mapping, row, column))
-            x -= 3;
-        Figure(x, y, mapping, row, column);
-    }
-
-    if (key == ConsoleKey.RightArrow)
-    {
-        if (!SideTest(x, y, 1, 0, field, mapping, row, column))
-            x += 3;
-        Figure(x, y, mapping, row, column);
-    }
-
-    if (key == ConsoleKey.Spacebar)
-    {
-        if (y + row < vertical - 8)
+        if (key == ConsoleKey.LeftArrow)
         {
-            (mapping, row, column) = Twist(mapping, row, column);
-            while (x + column > horizontal - 12) x -= 3;
-            while (x < 12) x += 3;
-            while (SideTest(x, y, 0, 0, field, mapping, row, column))
-            {
-                (int direction, int orientation) = TwistTest(x, y, field, mapping, row, column, horizontal);
-                x += direction;
-                y += orientation;
-            }
+            if (!SideTest(x, y, -1, 0, field, mapping, row, column))
+                x -= 3;
             Figure(x, y, mapping, row, column);
         }
-    }
 
-    if (key == ConsoleKey.DownArrow)
-    {
-        time = 100;
-        Figure(x, y, mapping, row, column);
-    }
-
-    if (key == ConsoleKey.P)
-    {
-        if (time <= 500)
+        if (key == ConsoleKey.RightArrow)
         {
-            time = 99999999;
-            Pause(vertical, horizontal);
+            if (!SideTest(x, y, 1, 0, field, mapping, row, column))
+                x += 3;
+            Figure(x, y, mapping, row, column);
         }
-        else (level, time) = LevelsUp(points);
+
+        if (key == ConsoleKey.Spacebar)
+        {
+            if (y + row < vertical - 8)
+            {
+                (mapping, row, column) = Twist(mapping, row, column);
+                while (x + column > horizontal - 12) x -= 3;
+                while (x < 12) x += 3;
+                while (SideTest(x, y, 0, 0, field, mapping, row, column))
+                {
+                    (int direction, int orientation) = TwistTest(x, y, field, mapping, row, column, horizontal);
+                    x += direction;
+                    y += orientation;
+                }
+                Figure(x, y, mapping, row, column);
+            }
+        }
+
+        if (key == ConsoleKey.DownArrow)
+        {
+            time = 100;
+            Figure(x, y, mapping, row, column);
+        }
+
+        if (key == ConsoleKey.P)
+        {
+            if (time <= 500)
+            {
+                time = 99999999;
+                Pause(vertical, horizontal);
+            }
+            else (level, time) = LevelsUp(points);
+        }
+
+        if (key == ConsoleKey.Escape)
+        {
+            if (startGame)
+            {
+                time = 1000;
+                startGame = false;
+            }
+            else
+            {
+                startGame = true;
+                (level, time) = LevelsUp(points);
+            }
+        }
+    }
+    else
+    {
+        if (key == ConsoleKey.DownArrow)
+        {
+            if (cursor < 4) cursor += 2;
+            Menu(cursor);
+        }
+
+        if (key == ConsoleKey.UpArrow)
+        {
+            if (cursor > 0) cursor -= 2;
+            Menu(cursor);
+        }
+
+        if (key == ConsoleKey.Enter)
+        {
+            switch (cursor)
+            {
+                case 0:
+                    startGame = true;
+                    (level, time) = LevelsUp(0);
+                    break;
+
+                case 2:
+                    startGame = true;
+                    (level, time) = LevelsUp(0);
+                    break;
+
+                default:
+                    startGame = true;
+                    (level, time) = LevelsUp(0);
+                    break;
+            }
+        }
     }
 }
