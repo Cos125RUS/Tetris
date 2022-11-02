@@ -25,7 +25,7 @@ int[,] CreateField(int vertical, int horizontal)
 {
     int[,] field = new int[vertical, horizontal];
 
-    for (int i = 2; i < vertical - 8; i++)
+    for (int i = 0; i < vertical - 8; i++)
     {
         for (int j = 0; j < 12; j++)
             field[i, j] = 1;
@@ -146,14 +146,11 @@ void Looser(int vertical, int horizontal)
 // Запрос рестарта
 bool RequestRestart()
 {
-    while (true)
-    {
         var key = Console.ReadKey(true).Key;
 
         if (key == ConsoleKey.Y) return true;
         if (key == ConsoleKey.N) return false;
         else return RequestRestart();
-    }
 }
 
 
@@ -443,6 +440,7 @@ const int horizontal = 60;
 // Запуск
 Console.CursorVisible = false;
 bool startGame = false;
+bool pause = false;
 int cursor = 0;
 
 // Инициализация поля
@@ -472,7 +470,11 @@ new Thread(() =>
             Thread.Sleep(time);
         }
 
-        while (time > 500) { }
+        while (pause)
+        {
+            Pause(vertical, horizontal);
+            Thread.Sleep(time);
+        }
 
         if (!gameOver)
         {
@@ -495,7 +497,7 @@ new Thread(() =>
         }
         else
         {
-            time = 3000;
+            time = 500;
             Looser(vertical, horizontal);
             if (RequestRestart())
             {
@@ -561,26 +563,24 @@ while (true)
 
         if (key == ConsoleKey.P)
         {
-            if (time <= 500)
+            if (!pause)
             {
-                time = 99999999;
-                Pause(vertical, horizontal);
+                time = 500;
+                pause = true;
             }
-            else (level, time) = LevelsUp(points);
+            else
+            {
+                pause = false;
+                (level, time) = LevelsUp(points);
+            }
+
         }
 
         if (key == ConsoleKey.Escape)
         {
-            if (startGame)
-            {
-                time = 1000;
-                startGame = false;
-            }
-            else
-            {
-                startGame = true;
-                (level, time) = LevelsUp(points);
-            }
+            time = 1000;
+            startGame = false;
+            if (pause) pause = false;
         }
     }
     else
@@ -603,7 +603,14 @@ while (true)
             {
                 case 0:
                     startGame = true;
-                    (level, time) = LevelsUp(0);
+                    (mapping, row, column) = NewFigure();
+                    (nextMapping, nextRow, nextColumn) = NewFigure();
+                    level = 1;
+                    (field, lineCounter, points, time, gameOver) =
+                    Restart(field, horizontal, vertical, lineCounter,
+                    points, time, gameOver);
+                    y = 0;
+                    x = horizontal / 2 - 3;
                     break;
 
                 case 2:
