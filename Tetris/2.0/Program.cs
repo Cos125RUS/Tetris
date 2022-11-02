@@ -454,17 +454,11 @@ int[,] Load()
     int length = file.IndexOf("\n");
     string[] lines = File.ReadAllLines("save.txt");
     int[,] field = new int[lines.Length, length - 1];
-    int num;
 
     for (int i = 0; i < lines.Length; i++)
-    {
-        int.TryParse(lines[i], out num);
-        for (int j = length - 2; j >= 0; j--)
-        {
-            field[i, j] = num % 10;
-            num /= 10;
-        }
-    }
+        for (int j = 0; j < length - 1; j++)
+            if (Convert.ToInt32(lines[i][j]) == 48) field[i, j] = 0;
+            else field[i, j] = 1;
 
     return field;
 }

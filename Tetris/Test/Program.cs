@@ -4,24 +4,11 @@
     int pos = text.IndexOf("\n");
     string[] lines = File.ReadAllLines("save.txt");
     int[,] arr = new int[lines.Length, pos - 1];
-    // int a;
 
     for (int i = 0; i < lines.Length; i++)
-    {
-        string numbers = lines[i];
-        int[] num = numbers.Select(x => x - '\n').ToArray();
-        // int.TryParse(lines[i], out a);
-        for (int j = 0; j < pos - 1; j--)
-        {
-            Console.Write(num[j]);
-            // arr[i,j] = num[j];
-            // arr[i,j] = int.Parse(numbers[j]);
-            // int.TryParse(numbers[j], out a);
-            // arr[i, j] = a % 10;
-            // a /= 10;
-        }
-        System.Console.WriteLine();
-    }
+        for (int j = 0; j < pos - 1; j++)
+            if (Convert.ToInt32(lines[i][j]) == 48) arr[i, j] = 0;
+            else arr[i, j] = 1;
 
     return arr;
 }
