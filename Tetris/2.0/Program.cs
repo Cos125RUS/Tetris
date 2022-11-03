@@ -482,6 +482,7 @@ const int horizontal = 60;
 Console.CursorVisible = false;
 bool startGame = false;
 bool pause = false;
+bool firstStart = false;
 int cursor = 0;
 
 // Инициализация поля
@@ -643,6 +644,7 @@ while (true)
             switch (cursor)
             {
                 case 0:
+                    if (!firstStart) firstStart = true;
                     startGame = true;
                     (mapping, row, column) = NewFigure();
                     (nextMapping, nextRow, nextColumn) = NewFigure();
@@ -676,8 +678,11 @@ while (true)
 
         if (key == ConsoleKey.Escape)
         {
-            (level, time) = LevelsUp(points);
-            startGame = true;
+            if (firstStart)
+            {
+                (level, time) = LevelsUp(points);
+                startGame = true;
+            }
         }
     }
 }
