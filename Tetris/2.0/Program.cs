@@ -669,9 +669,15 @@ while (true)
                     break;
 
                 default:
-                    
+
                     break;
             }
+        }
+
+        if (key == ConsoleKey.Escape)
+        {
+            (level, time) = LevelsUp(points);
+            startGame = true;
         }
     }
 }
