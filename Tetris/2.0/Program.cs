@@ -15,6 +15,9 @@ void Menu(int cursor)
     Console.SetCursorPosition(42, 14);
     Console.Write("Load");
 
+    Console.SetCursorPosition(42, 16);
+    Console.Write("Exit");
+
     Console.SetCursorPosition(37 + a, 10 + cursor);
     Console.Write('*');
 }
@@ -434,25 +437,28 @@ void Reduction(int line, int[,] field, int[] lineCounter, int horizontal)
 
 
 // Сохранение
-void Save(int[,] field, int vertical, int horizontal)
+void Save(int[,] field, int vertical, int horizontal, int points)
 {
-    string[] saveGame = new string[vertical];
-    File.WriteAllText("save.txt", "");
+    string[] saveField = new string[vertical];
+    File.WriteAllText("saveField.txt", "");
 
     for (int i = 0; i < vertical; i++)
         for (int j = 0; j < horizontal; j++)
-            saveGame[i] += field[i, j];
+            saveField[i] += field[i, j];
 
-    File.AppendAllLines("save.txt", saveGame);
+    File.AppendAllLines("saveField.txt", saveField);
+
+    string savePoints = Convert.ToString(points);
+    File.WriteAllText("savePoints.txt", savePoints);
 }
 
 
 // Загрузка
-int[,] Load()
+(int[,], int) Load()
 {
-    string file = File.ReadAllText("save.txt");
-    int length = file.IndexOf("\n");
-    string[] lines = File.ReadAllLines("save.txt");
+    string loadField = File.ReadAllText("saveField.txt");
+    int length = loadField.IndexOf("\n");
+    string[] lines = File.ReadAllLines("saveField.txt");
     int[,] field = new int[lines.Length, length - 1];
 
     for (int i = 0; i < lines.Length; i++)
@@ -460,7 +466,11 @@ int[,] Load()
             if (Convert.ToInt32(lines[i][j]) == 48) field[i, j] = 0;
             else field[i, j] = 1;
 
-    return field;
+    string loadPoints = File.ReadAllText("savePoints.txt");
+    int points;
+    int.TryParse(loadPoints, out points);
+
+    return (field, points);
 }
 
 
@@ -618,7 +628,7 @@ while (true)
     {
         if (key == ConsoleKey.DownArrow)
         {
-            if (cursor < 4) cursor += 2;
+            if (cursor < 6) cursor += 2;
             Menu(cursor);
         }
 
@@ -645,18 +655,21 @@ while (true)
                     break;
 
                 case 2:
-                    Save(field, vertical, horizontal);
+                    Save(field, vertical, horizontal, points);
                     break;
 
-                default:
-                    field = Load();
+                case 4:
+                    (field, points) = Load();
                     startGame = true;
                     (mapping, row, column) = NewFigure();
                     (nextMapping, nextRow, nextColumn) = NewFigure();
-                    level = 1;
-                    time = 500;
+                    (level, time) = LevelsUp(points);
                     y = 0;
                     x = horizontal / 2 - 3;
+                    break;
+
+                default:
+                    
                     break;
             }
         }
