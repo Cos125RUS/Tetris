@@ -553,8 +553,11 @@ new Thread(() =>
                 Console.WriteLine("Your points: " + points);
                 Thread.Sleep(3000);
                 startGame = false;
+                firstStart = false;
             }
         }
+
+        // if (exit) 
     }
 }).Start();
 
@@ -671,7 +674,7 @@ while (true)
                     break;
 
                 default:
-
+                    System.Diagnostics.Process.GetCurrentProcess().Kill();
                     break;
             }
         }
