@@ -6,19 +6,19 @@ void Menu(int cursor)
 
     Console.Clear();
 
-    Console.SetCursorPosition(40, 10);
+    Console.SetCursorPosition(43, 10);
     Console.Write("New game");
 
-    Console.SetCursorPosition(42, 12);
+    Console.SetCursorPosition(45, 12);
     Console.Write("Save");
 
-    Console.SetCursorPosition(42, 14);
+    Console.SetCursorPosition(45, 14);
     Console.Write("Load");
 
-    Console.SetCursorPosition(42, 16);
+    Console.SetCursorPosition(45, 16);
     Console.Write("Exit");
 
-    Console.SetCursorPosition(37 + a, 10 + cursor);
+    Console.SetCursorPosition(40 + a, 10 + cursor);
     Console.Write('*');
 }
 
